@@ -1,0 +1,29 @@
+<% extend 'demo-panel-base.ect' %>
+<script type="text/javascript">
+!function(){
+	var panel = $("#<%- @panel_id %>");
+	var timeout = 5000;
+	var btn = panel.find('.btn.btn-primary');
+	var content = panel.find('.panel-content');
+
+	function delay(callback) {
+		setTimeout(function(){
+			content.text(content.text() + timeout + "ms経過... ");
+			callback();
+		}, timeout);
+	}
+
+	btn.click(function(){
+		btn.prop('disabled', true);
+		content.text("実行ボタンが押されました... ")
+		delay(function(){
+			delay(function(){
+				delay(function(){
+					content.text(content.text() + "完了!");
+					btn.prop('disabled', false);
+				})
+			})
+		});
+	});
+}();
+</script>

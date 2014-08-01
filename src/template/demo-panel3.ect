@@ -1,0 +1,34 @@
+<% extend 'demo-panel-base.ect' %>
+<script type="text/javascript">
+!function(){
+	var panel = $("#<%- @panel_id %>");
+	var timeout = 5000;
+	var btn = panel.find('.btn.btn-primary');
+	var content = panel.find('.panel-content');	
+
+	function delay() {
+		/* Deferred オブジェクトを生成する */
+		var deferred = new $.Deferred;
+		setTimeout(function(){
+			content.text(content.text() + timeout + "ms経過... ");
+			/* 非同期処理が完了したときに resolve() を呼び出す */
+			deferred.resolve();
+		}, timeout);
+		/* Deferred の Promise オブジェクトを返す */
+		return deferred.promise();
+	}
+
+	btn.click(function(){
+		btn.prop('disabled', true);
+		content.text("実行ボタンが押されました... ")
+		delay()
+		.then(delay)
+		.then(delay)
+		.then(function(){
+			content.text(content.text() + "完了!");
+			btn.prop('disabled', false);
+		});
+
+	});
+}();
+</script>

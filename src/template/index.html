@@ -1,0 +1,15 @@
+<% block 'title': %>MIJS 2014 夏合宿<% end %>
+<% block 'navbar-brand': %>MIJS 夏の日の 2014<% end %>
+
+<% extend 'base.ect' %>
+<% include 'navbar.ect' %>
+
+<div class="page-header">
+<h1>JavaScript / jQuery 班 <small>非同期処理サブチーム</small></h1>
+</div>
+
+<div class="panel-group" id="accordion">
+  <% include 'demo-panel1.ect', {panel_id: 'demo-panel1', panel_title: '非同期デモ #1'} %>
+  <% include 'demo-panel2.ect', {panel_id: 'demo-panel2', panel_title: '非同期デモ #2'} %>
+  <% include 'demo-panel3.ect', {panel_id: 'demo-panel3', panel_title: '非同期デモ #3'} %>
+</div>
