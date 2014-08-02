@@ -1,0 +1,80 @@
+<% extend 'demo-panel-base.ect' %>
+<script type="text/javascript">
+!function(){
+	var panel = $("#<%- @panel_id %>");
+	var timeout = 3000;
+	var btn = panel.find('.btn.btn-primary');
+	var content = panel.find('.panel-content');	
+
+	function delay() {
+		/* Deferred オブジェクトを生成する */
+		var deferred = new $.Deferred;
+		setTimeout(function(){
+			content.text(content.text() + timeout + "ms経過... ");
+			/* 非同期処理が完了したときに resolve() を呼び出す */
+			deferred.resolve();
+		}, timeout);
+		/* Deferred の Promise オブジェクトを返す */
+		return deferred.promise();
+	}
+
+	//----------------------------------------------------------------------
+	// jQuery.Deferred を使って非同期処理をエレガントに書く #html5j
+	// http://www.ogaoga.org/?p=793
+	//----------------------------------------------------------------------
+    // 位置情報を取得する。
+    var getCurrentPosition = function() {
+        // Deferred オブジェクトを取得
+        var deferred = new $.Deferred();
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                // 位置情報の取得に成功したので、緯度経度を deferred.resolve() に渡す。
+				content.text(content.text() +
+					"lat=" + position.coords.latitude + 
+					",lon=" + position.coords.longitude + "です...");
+                return deferred.resolve(position);
+            },
+            function(error) {
+                // 位置情報の取得に失敗したので、error オブジェクトを deferred.reject() に渡す。
+                return deferred.reject(error);
+            }
+        );
+        // Pormise オブジェクトを返す
+        return deferred.promise();
+    };
+    
+    // 位置情報から住所を取得する。
+    var getAddress = function(position) {
+    	console.log("getAddress:", position);
+        var url = 'http://www.finds.jp/ws/geocode.php';
+        return $.ajax(url, {
+            data: {
+                lat: position.coords.latitude,
+                lon: position.coords.longitude
+            },
+			dataType: 'jsonp',
+			jsonp: 'jsonp'
+        });
+    };
+
+	btn.click(function(){
+		btn.prop('disabled', true);
+		content.text("実行ボタンが押されました... ");
+
+		delay()
+		.then(getCurrentPosition)	// ブラウザから現在位置を取得
+		.then(getAddress)			// 現在位置から住所を取得
+		.then(function(data) {		// 住所取得成功
+			if (data.status == 200) {
+				content.text(content.text() + 
+					"現在位置は「" + data.result.local[0].section + "」です");
+			} else {
+				content.text(content.text() + "現在位置が取得できませんでした！");
+			}
+		})
+		.always(function(){
+			btn.prop('disabled', false);
+		});
+	});
+}();
+</script>

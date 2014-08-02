@@ -10,3 +10,11 @@ body {
 	margin-bottom: 10px;
 	padding: 8px;
 }
+
+.demo-description {
+	padding: 20px;
+	margin-bottom: 20px;
+	border: 1px solid #eee;
+	border-left-width: 5px;
+	border-radius: 3px;	
+}

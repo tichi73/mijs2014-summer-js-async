@@ -1,0 +1,47 @@
+<% extend 'demo-panel-base.ect' %>
+<script type="text/javascript">
+!function(){
+	var panel = $("#<%- @panel_id %>");
+	var btn = panel.find('.btn.btn-primary');
+	var content = panel.find('.panel-content');	
+
+	function getCurrentPosition() {
+        var deferred = new $.Deferred();
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                return deferred.resolve(position);
+            },
+            function(error) {
+                return defered.reject(error);
+            }
+        );
+        return deferred.promise();
+	}
+
+    function getWeather(position) {
+        var url = 'http://api.openweathermap.org/data/2.5/weather';
+        return $.ajax(url, {
+            data: {
+                lat: position.coords.latitude,
+                lon: position.coords.longitude
+            }
+        });
+    };
+
+	btn.click(function(){
+		btn.prop('disabled', true);
+		content.text("現在地の天気は... ")
+
+		getCurrentPosition()
+		.then(function(position){
+        	return getWeather(position);
+        })
+        .then(function(data) {
+			content.text(content.text() + data.weather[0].description);
+            btn.prop('disabled', false);
+        });
+	});
+}();
+</script>
+
+

@@ -1,8 +1,12 @@
 <% extend 'demo-panel-base.ect' %>
+<div class="demo-description">
+<h4>コールバックの仕組み</h4>
+setTimeout は指定した時間経過後にコールバック関数を実行します。
+</div>
 <script type="text/javascript">
 !function(){
 	var panel = $("#<%- @panel_id %>");
-	var timeout = 5000;
+	var timeout = 3000;
 	var btn = panel.find('.btn.btn-primary');
 	var content = panel.find('.panel-content');	
 

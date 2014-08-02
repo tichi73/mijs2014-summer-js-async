@@ -43,12 +43,14 @@
   </div>
   <div id="demo-panel1" class="panel-collapse collapse">
     <div class="panel-body">
-      <button class="btn btn-primary"><span class="glyphicon glyphicon-play"></span> 実行</button>
-      <div class="panel-content">
-        <script type="text/javascript">
+      <div class="demo-description">
+<h4>コールバックの仕組み</h4>
+setTimeout は指定した時間経過後にコールバック関数を実行します。
+</div>
+<script type="text/javascript">
 !function(){
 	var panel = $("#demo-panel1");
-	var timeout = 5000;
+	var timeout = 3000;
 	var btn = panel.find('.btn.btn-primary');
 	var content = panel.find('.panel-content');	
 
@@ -62,6 +64,8 @@
 	});
 }();
 </script>
+      <button class="btn btn-primary"><span class="glyphicon glyphicon-play"></span> 実行</button>
+      <div class="panel-content">
       </div>
     </div>
   </div>
@@ -75,12 +79,10 @@
   </div>
   <div id="demo-panel2" class="panel-collapse collapse">
     <div class="panel-body">
-      <button class="btn btn-primary"><span class="glyphicon glyphicon-play"></span> 実行</button>
-      <div class="panel-content">
-        <script type="text/javascript">
+      <script type="text/javascript">
 !function(){
 	var panel = $("#demo-panel2");
-	var timeout = 5000;
+	var timeout = 3000;
 	var btn = panel.find('.btn.btn-primary');
 	var content = panel.find('.panel-content');
 
@@ -105,6 +107,8 @@
 	});
 }();
 </script>
+      <button class="btn btn-primary"><span class="glyphicon glyphicon-play"></span> 実行</button>
+      <div class="panel-content">
       </div>
     </div>
   </div>
@@ -118,12 +122,10 @@
   </div>
   <div id="demo-panel3" class="panel-collapse collapse">
     <div class="panel-body">
-      <button class="btn btn-primary"><span class="glyphicon glyphicon-play"></span> 実行</button>
-      <div class="panel-content">
-        <script type="text/javascript">
+      <script type="text/javascript">
 !function(){
 	var panel = $("#demo-panel3");
-	var timeout = 5000;
+	var timeout = 3000;
 	var btn = panel.find('.btn.btn-primary');
 	var content = panel.find('.panel-content');	
 
@@ -153,6 +155,163 @@
 	});
 }();
 </script>
+      <button class="btn btn-primary"><span class="glyphicon glyphicon-play"></span> 実行</button>
+      <div class="panel-content">
+      </div>
+    </div>
+  </div>
+</div>
+  <div class="panel panel-default">
+  <div class="panel-heading">
+    <h4 class="panel-title">
+      <a data-toggle="collapse" data-parent="#accordion" href="#demo-panel4">
+        非同期デモ #4      </a>
+    </h4>
+  </div>
+  <div id="demo-panel4" class="panel-collapse collapse">
+    <div class="panel-body">
+      <script type="text/javascript">
+!function(){
+	var panel = $("#demo-panel4");
+	var timeout = 3000;
+	var btn = panel.find('.btn.btn-primary');
+	var content = panel.find('.panel-content');	
+
+	function delay() {
+		/* Deferred オブジェクトを生成する */
+		var deferred = new $.Deferred;
+		setTimeout(function(){
+			content.text(content.text() + timeout + "ms経過... ");
+			/* 非同期処理が完了したときに resolve() を呼び出す */
+			deferred.resolve();
+		}, timeout);
+		/* Deferred の Promise オブジェクトを返す */
+		return deferred.promise();
+	}
+
+	//----------------------------------------------------------------------
+	// jQuery.Deferred を使って非同期処理をエレガントに書く #html5j
+	// http://www.ogaoga.org/?p=793
+	//----------------------------------------------------------------------
+    // 位置情報を取得する。
+    var getCurrentPosition = function() {
+        // Deferred オブジェクトを取得
+        var deferred = new $.Deferred();
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                // 位置情報の取得に成功したので、緯度経度を deferred.resolve() に渡す。
+				content.text(content.text() +
+					"lat=" + position.coords.latitude + 
+					",lon=" + position.coords.longitude + "です...");
+                return deferred.resolve(position);
+            },
+            function(error) {
+                // 位置情報の取得に失敗したので、error オブジェクトを deferred.reject() に渡す。
+                return deferred.reject(error);
+            }
+        );
+        // Pormise オブジェクトを返す
+        return deferred.promise();
+    };
+    
+    // 位置情報から住所を取得する。
+    var getAddress = function(position) {
+    	console.log("getAddress:", position);
+        var url = 'http://www.finds.jp/ws/geocode.php';
+        return $.ajax(url, {
+            data: {
+                lat: position.coords.latitude,
+                lon: position.coords.longitude
+            },
+			dataType: 'jsonp',
+			jsonp: 'jsonp'
+        });
+    };
+
+	btn.click(function(){
+		btn.prop('disabled', true);
+		content.text("実行ボタンが押されました... ");
+
+		delay()
+		.then(getCurrentPosition)	// ブラウザから現在位置を取得
+		.then(getAddress)			// 現在位置から住所を取得
+		.then(function(data) {		// 住所取得成功
+			if (data.status == 200) {
+				content.text(content.text() + 
+					"現在位置は「" + data.result.local[0].section + "」です");
+			} else {
+				content.text(content.text() + "現在位置が取得できませんでした！");
+			}
+		})
+		.always(function(){
+			btn.prop('disabled', false);
+		});
+	});
+}();
+</script>
+      <button class="btn btn-primary"><span class="glyphicon glyphicon-play"></span> 実行</button>
+      <div class="panel-content">
+      </div>
+    </div>
+  </div>
+</div>
+  <div class="panel panel-default">
+  <div class="panel-heading">
+    <h4 class="panel-title">
+      <a data-toggle="collapse" data-parent="#accordion" href="#demo-panel5">
+        非同期デモ #5      </a>
+    </h4>
+  </div>
+  <div id="demo-panel5" class="panel-collapse collapse">
+    <div class="panel-body">
+      <script type="text/javascript">
+!function(){
+	var panel = $("#demo-panel5");
+	var btn = panel.find('.btn.btn-primary');
+	var content = panel.find('.panel-content');	
+
+	function getCurrentPosition() {
+        var deferred = new $.Deferred();
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                return deferred.resolve(position);
+            },
+            function(error) {
+                return defered.reject(error);
+            }
+        );
+        return deferred.promise();
+	}
+
+    function getWeather(position) {
+        var url = 'http://api.openweathermap.org/data/2.5/weather';
+        return $.ajax(url, {
+            data: {
+                lat: position.coords.latitude,
+                lon: position.coords.longitude
+            }
+        });
+    };
+
+	btn.click(function(){
+		btn.prop('disabled', true);
+		content.text("現在地の天気は... ")
+
+		getCurrentPosition()
+		.then(function(position){
+        	return getWeather(position);
+        })
+        .then(function(data) {
+			content.text(content.text() + data.weather[0].description);
+            btn.prop('disabled', false);
+        });
+	});
+}();
+</script>
+
+
+      <button class="btn btn-primary"><span class="glyphicon glyphicon-play"></span> 実行</button>
+      <div class="panel-content">
       </div>
     </div>
   </div>
