@@ -1,6 +1,13 @@
 <% extend 'demo-panel-base.ect' %>
+<div class="demo-description">
+<h3>非同期処理の並列化</h3>
+<p>
+GeolocationAPIを使用して緯度経度を取得して、取得した緯度経度を元にAjaxを使ってサーバから天気を取得して表示する、というサンプル。現在位置情報の取得には利用者の認証が必要な為、非同期。また、天気情報の取得に関してもレスポンスを待つ必要がある為、非同期。その為、コールバック関数の中で次の処理を呼び出す必要があり、ネストが深くなってしまうのがネック。そこで、Deferred
+を使用すると、コールバック処理が2箇所に分割され、多くの非同期処理を順番に実行する場合でもネストが深くならない。
+</p>
+</div>
 <script type="text/javascript">
-!function(){
+$(function(){
 	var panel = $("#<%- @panel_id %>");
 	var btn = panel.find('.btn.btn-primary');
 	var content = panel.find('.panel-content');	
@@ -41,7 +48,7 @@
             btn.prop('disabled', false);
         });
 	});
-}();
+});
 </script>
 
 

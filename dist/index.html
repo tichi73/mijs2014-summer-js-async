@@ -11,6 +11,10 @@
     <script src="lib/bootstrap-3.2.0-dist/js/bootstrap.min.js"></script>
     <script src="js/demo.min.js"></script>
     <script src="//localhost:35729/livereload.js"></script>
+
+    <link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.1/styles/default.min.css">
+    <link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.1/styles/rainbow.min.css">
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.1/highlight.min.js"></script>    
 </head>
 <body>
 
@@ -24,13 +28,35 @@
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
-      <a class="navbar-brand" href="#">MIJS 夏の日の 2014</a>
+      <a class="navbar-brand" href="#">MIJS 2014 夏合宿</a>
     </div>
 </div>
 </nav>
 
 <div class="page-header">
-<h1>JavaScript / jQuery 班 <small>非同期処理サブチーム</small></h1>
+<h1>
+	jQuery.Deferred による非同期プログラミング
+	<div><small>JavaScript / jQueryチーム 非同期処理サブチーム</small></div>
+</h1>
+</div>
+
+<div class="demo-description">
+<h2>概要</h2>
+<p>JavaScript は時間がかかる処理は非同期で行うことが基本となっており、
+実装としてはコールバック関数を API に渡すことで処理完了時にそれが呼ばれる、
+というのが典型的な使い方になります。
+しかし複数の非同期処理を連続または並列に処理したい、という場面で
+しばしば<strong>「コールバック地獄」</strong>という残念な現象が発生し、
+われわれを苦しめることになります。
+</p>
+<p>
+非同期にまつわる問題に対して、さまざまな取り組みがなされていますが、
+今回は jQuery に備わっている Deferred という機能を使うことで、
+複雑な非同期処理が簡潔に実装できるようになることを紹介します。
+</p>
+<p>
+<a href="http://api.jquery.com/category/deferred-object/">http://api.jquery.com/category/deferred-object/</a>
+</p>
 </div>
 
 <div class="panel-group" id="accordion">
@@ -44,15 +70,21 @@
   <div id="demo-panel1" class="panel-collapse collapse">
     <div class="panel-body">
       <div class="demo-description">
-<h4>コールバックの仕組み</h4>
+<h3>コールバックの仕組み</h3>
+<p>
 setTimeout は指定した時間経過後にコールバック関数を実行します。
+</p>
+<p>
+以下の例では btn.click() で登録した無名関数（これ自体もコールバック関数です）が
+終了したあと、timeout ミリ秒後に setTimeout() で登録した無名関数がコールバック関数として実行されます。
+</p>
 </div>
 <script type="text/javascript">
-!function(){
+$(function(){
 	var panel = $("#demo-panel1");
-	var timeout = 3000;
 	var btn = panel.find('.btn.btn-primary');
 	var content = panel.find('.panel-content');	
+	var timeout = 3000;
 
 	btn.click(function(){
 		btn.prop('disabled', true);
@@ -62,8 +94,9 @@ setTimeout は指定した時間経過後にコールバック関数を実行し
 			btn.prop('disabled', false);
 		}, timeout);
 	});
-}();
+});
 </script>
+      <pre><code class="demo-source"></code></pre>
       <button class="btn btn-primary"><span class="glyphicon glyphicon-play"></span> 実行</button>
       <div class="panel-content">
       </div>
@@ -79,12 +112,24 @@ setTimeout は指定した時間経過後にコールバック関数を実行し
   </div>
   <div id="demo-panel2" class="panel-collapse collapse">
     <div class="panel-body">
-      <script type="text/javascript">
-!function(){
+      <div class="demo-description">
+<h3>コールバック地獄の入口</h3>
+<p>
+疑似的に時間がかかる処理を delay という名前の関数で作成し、
+これは完了時に指定したコールバック関数を呼び出すものとします。
+この delay を連続的に処理させたい場合、コールバック関数の中で再度 delay を呼び出す必要があり、
+以下のようにコードのインデントが深くなってしまい、可読性の低いものになってしまいます。
+</p>
+<p>
+※ ここでは紹介しきれませんが非同期処理の並列化やエラーの伝搬など行うにはさらに地獄になると言われています。
+</p>
+</div>
+<script type="text/javascript">
+$(function(){
 	var panel = $("#demo-panel2");
-	var timeout = 3000;
 	var btn = panel.find('.btn.btn-primary');
 	var content = panel.find('.panel-content');
+	var timeout = 3000;
 
 	function delay(callback) {
 		setTimeout(function(){
@@ -105,8 +150,9 @@ setTimeout は指定した時間経過後にコールバック関数を実行し
 			})
 		});
 	});
-}();
+});
 </script>
+      <pre><code class="demo-source"></code></pre>
       <button class="btn btn-primary"><span class="glyphicon glyphicon-play"></span> 実行</button>
       <div class="panel-content">
       </div>
@@ -122,12 +168,28 @@ setTimeout は指定した時間経過後にコールバック関数を実行し
   </div>
   <div id="demo-panel3" class="panel-collapse collapse">
     <div class="panel-body">
-      <script type="text/javascript">
-!function(){
+      <div class="demo-description">
+<h3>jQuery.Deferred オブジェクトによる非同期処理</h3>
+<p>
+ここで非同期処理に jQuery.Deferred オブジェクトを使う方法を紹介します。
+</p>
+<p>
+先ほどと同じ delay という非同期処理を、内部で jQuery.Deferred オブジェクトを生成し、
+その Promise オブジェクト（Deferred に内包されている）を返す、
+という実装に書き換えます。
+そして、非同期処理が完了した時点で Deferred オブジェクトの resolve() を呼び出すようにしておきます。
+<p>
+<p>
+これで delay は Deferred インターフェースを持つことになり、
+.then() というメソッドで非同期処理を連結できるようになります。
+</p>
+</div>
+<script type="text/javascript">
+$(function(){
 	var panel = $("#demo-panel3");
-	var timeout = 3000;
 	var btn = panel.find('.btn.btn-primary');
 	var content = panel.find('.panel-content');	
+	var timeout = 3000;
 
 	function delay() {
 		/* Deferred オブジェクトを生成する */
@@ -153,8 +215,9 @@ setTimeout は指定した時間経過後にコールバック関数を実行し
 		});
 
 	});
-}();
+});
 </script>
+      <pre><code class="demo-source"></code></pre>
       <button class="btn btn-primary"><span class="glyphicon glyphicon-play"></span> 実行</button>
       <div class="panel-content">
       </div>
@@ -170,12 +233,34 @@ setTimeout は指定した時間経過後にコールバック関数を実行し
   </div>
   <div id="demo-panel4" class="panel-collapse collapse">
     <div class="panel-body">
-      <script type="text/javascript">
-!function(){
+      <div class="demo-description">
+<h3>Deferred による非同期処理の共通化</h3>
+<p>
+Deferred インターフェースを持つ非同期処理は共通的に扱うことができるようになります。
+</p>
+<p>
+さきほどの delay に加えて、ブラウザが位置情報を取得する getCurrentPosition、
+位置情報から住所を調べる getAddress という非同期処理を用意しました。
+これらは Deferred インターフェースを持っているので、すべて .then() で連結することができます。
+</p>
+<p>
+また .when() を使って非同期処理を並列化することも可能です。
+この場合は、すべての非同期処理が完了したときに、次の処理に継続することになります。
+</p>
+<p>
+getAddress を見ると分かるように jQuery.Ajax も Deferred インターフェースを備えていることが分かります。
+非同期処理を実装するときに Deferred を使うことで、再利用性が高いパーツを作ることになるでしょう。
+</p>
+<p>
+参考：<a href="http://www.ogaoga.org/?p=793">jQuery.Deferred を使って非同期処理をエレガントに書く #html5j</a>
+</p>
+</div>
+<script type="text/javascript">
+$(function(){
 	var panel = $("#demo-panel4");
-	var timeout = 3000;
 	var btn = panel.find('.btn.btn-primary');
 	var content = panel.find('.panel-content');	
+	var timeout = 3000;
 
 	function delay() {
 		/* Deferred オブジェクトを生成する */
@@ -194,15 +279,15 @@ setTimeout は指定した時間経過後にコールバック関数を実行し
 	// http://www.ogaoga.org/?p=793
 	//----------------------------------------------------------------------
     // 位置情報を取得する。
-    var getCurrentPosition = function() {
+    function getCurrentPosition() {
         // Deferred オブジェクトを取得
         var deferred = new $.Deferred();
         navigator.geolocation.getCurrentPosition(
             function(position) {
                 // 位置情報の取得に成功したので、緯度経度を deferred.resolve() に渡す。
 				content.text(content.text() +
-					"lat=" + position.coords.latitude + 
-					",lon=" + position.coords.longitude + "です...");
+					"緯度は " + position.coords.latitude + 
+					" 経度は " + position.coords.longitude + " です...");
                 return deferred.resolve(position);
             },
             function(error) {
@@ -212,20 +297,49 @@ setTimeout は指定した時間経過後にコールバック関数を実行し
         );
         // Pormise オブジェクトを返す
         return deferred.promise();
-    };
+    }
     
     // 位置情報から住所を取得する。
-    var getAddress = function(position) {
-    	console.log("getAddress:", position);
-        var url = 'http://www.finds.jp/ws/geocode.php';
-        return $.ajax(url, {
+    function getAddress(position) {
+        var deferred = new $.Deferred();
+        var url = 'http://www.finds.jp/ws/rgeocode.php';
+        $.ajax(url, {
             data: {
                 lat: position.coords.latitude,
                 lon: position.coords.longitude
             },
-			dataType: 'jsonp',
-			jsonp: 'jsonp'
+            dataType: 'jsonp',
+            jsonp: 'jsonp'
+        }).done(function(data){
+			if (data.status == 200) {
+				var result = data.result;
+				var address = result.prefecture.pname +
+					result.municipality.mname +
+					result.local[0].section;
+				content.text(content.text() + 
+					"住所は「" + address + "」です...");
+			} else {
+				content.text(content.text() + "住所が取得できませんでした！");
+			}
+            return deferred.resolve();
         });
+        return deferred.promise();
+    }
+
+	// 位置情報から天気を取得する
+    function getWeather(position) {
+        var deferred = new $.Deferred();
+        var url = 'http://api.openweathermap.org/data/2.5/weather';
+        return $.ajax(url, {
+            data: {
+                lat: position.coords.latitude,
+                lon: position.coords.longitude
+            }
+        }).done(function(data){
+			content.text(content.text() + "天気は「" + data.weather[0].description + "」です...");
+            return deferred.resolve();
+        });
+        return deferred.promise();
     };
 
 	btn.click(function(){
@@ -234,89 +348,54 @@ setTimeout は指定した時間経過後にコールバック関数を実行し
 
 		delay()
 		.then(getCurrentPosition)	// ブラウザから現在位置を取得
-		.then(getAddress)			// 現在位置から住所を取得
-		.then(function(data) {		// 住所取得成功
-			if (data.status == 200) {
-				content.text(content.text() + 
-					"現在位置は「" + data.result.local[0].section + "」です");
-			} else {
-				content.text(content.text() + "現在位置が取得できませんでした！");
-			}
+		.then(function(position){
+			return $.when(getAddress(position), getWeather(position));
 		})
 		.always(function(){
+			content.text(content.text() + "完了!");
 			btn.prop('disabled', false);
 		});
 	});
-}();
+});
 </script>
+      <pre><code class="demo-source"></code></pre>
       <button class="btn btn-primary"><span class="glyphicon glyphicon-play"></span> 実行</button>
       <div class="panel-content">
       </div>
     </div>
   </div>
 </div>
-  <div class="panel panel-default">
+  <div class="panel panel-primary">
   <div class="panel-heading">
     <h4 class="panel-title">
-      <a data-toggle="collapse" data-parent="#accordion" href="#demo-panel5">
-        非同期デモ #5      </a>
+      <a data-toggle="collapse" data-parent="#accordion" href="#conclusion-panel">
+        まとめ      </a>
     </h4>
   </div>
-  <div id="demo-panel5" class="panel-collapse collapse">
+  <div id="conclusion-panel" class="panel-collapse collapse">
     <div class="panel-body">
-      <script type="text/javascript">
-!function(){
-	var panel = $("#demo-panel5");
-	var btn = panel.find('.btn.btn-primary');
-	var content = panel.find('.panel-content');	
-
-	function getCurrentPosition() {
-        var deferred = new $.Deferred();
-        navigator.geolocation.getCurrentPosition(
-            function(position) {
-                return deferred.resolve(position);
-            },
-            function(error) {
-                return defered.reject(error);
-            }
-        );
-        return deferred.promise();
-	}
-
-    function getWeather(position) {
-        var url = 'http://api.openweathermap.org/data/2.5/weather';
-        return $.ajax(url, {
-            data: {
-                lat: position.coords.latitude,
-                lon: position.coords.longitude
-            }
-        });
-    };
-
-	btn.click(function(){
-		btn.prop('disabled', true);
-		content.text("現在地の天気は... ")
-
-		getCurrentPosition()
-		.then(function(position){
-        	return getWeather(position);
-        })
-        .then(function(data) {
-			content.text(content.text() + data.weather[0].description);
-            btn.prop('disabled', false);
-        });
-	});
-}();
-</script>
-
-
-      <button class="btn btn-primary"><span class="glyphicon glyphicon-play"></span> 実行</button>
-      <div class="panel-content">
-      </div>
+    <p>
+    シングルスレッドで動作する JavaScript では非同期処理とコールバックは避けては通れません。
+    しかし少し複雑なことをしようとすると軽く地獄が待っていることを知っておく必要があります。
+    </p>
+    <p>
+    複雑な非同期処理を実現する仕組みとして、今回は jQuery の Deferred オブジェクトを紹介しました。
+    非同期処理の実装では Promise オブジェクトを返す Deferred インターフェースにしておくことで、
+    直列や並列を組み合わせた非同期処理も可読性を保ちつつ記述できるようになります。
+    </p>
+    <p>
+    Web アプリのフロントエンドでの処理は、今後、より高度かつ複雑になってくることが予想され、
+    JavaScript での非同期処理のプログラミングを習得しておくことの重要性はさらに
+    増していくことと思われます。
+    </p>
+    <p>
+    なお JavaScript (ES6) 自体にネイティブに Promise 機能を持つことも決定しており、
+    すでにいくつかのモダンブラウザでは利用可能になっています。
+    最新の動向を押さえつつ、その時点で最適な非同期プログラミングを楽しみましょう。
+    </p>
     </div>
   </div>
-</div>
-</div>
+</div></div>
 
 <!-- Scripts -->
 </body>

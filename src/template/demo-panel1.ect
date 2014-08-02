@@ -1,14 +1,20 @@
 <% extend 'demo-panel-base.ect' %>
 <div class="demo-description">
-<h4>コールバックの仕組み</h4>
+<h3>コールバックの仕組み</h3>
+<p>
 setTimeout は指定した時間経過後にコールバック関数を実行します。
+</p>
+<p>
+以下の例では btn.click() で登録した無名関数（これ自体もコールバック関数です）が
+終了したあと、timeout ミリ秒後に setTimeout() で登録した無名関数がコールバック関数として実行されます。
+</p>
 </div>
 <script type="text/javascript">
-!function(){
+$(function(){
 	var panel = $("#<%- @panel_id %>");
-	var timeout = 3000;
 	var btn = panel.find('.btn.btn-primary');
 	var content = panel.find('.panel-content');	
+	var timeout = 3000;
 
 	btn.click(function(){
 		btn.prop('disabled', true);
@@ -18,5 +24,5 @@ setTimeout は指定した時間経過後にコールバック関数を実行し
 			btn.prop('disabled', false);
 		}, timeout);
 	});
-}();
+});
 </script>

@@ -1,0 +1,32 @@
+<div class="panel panel-primary">
+  <div class="panel-heading">
+    <h4 class="panel-title">
+      <a data-toggle="collapse" data-parent="#accordion" href="#<%- @panel_id %>">
+        <%- @panel_title %>
+      </a>
+    </h4>
+  </div>
+  <div id="<%- @panel_id %>" class="panel-collapse collapse">
+    <div class="panel-body">
+    <p>
+    シングルスレッドで動作する JavaScript では非同期処理とコールバックは避けては通れません。
+    しかし少し複雑なことをしようとすると軽く地獄が待っていることを知っておく必要があります。
+    </p>
+    <p>
+    複雑な非同期処理を実現する仕組みとして、今回は jQuery の Deferred オブジェクトを紹介しました。
+    非同期処理の実装では Promise オブジェクトを返す Deferred インターフェースにしておくことで、
+    直列や並列を組み合わせた非同期処理も可読性を保ちつつ記述できるようになります。
+    </p>
+    <p>
+    Web アプリのフロントエンドでの処理は、今後、より高度かつ複雑になってくることが予想され、
+    JavaScript での非同期処理のプログラミングを習得しておくことの重要性はさらに
+    増していくことと思われます。
+    </p>
+    <p>
+    なお JavaScript (ES6) 自体にネイティブに Promise 機能を持つことも決定しており、
+    すでにいくつかのモダンブラウザでは利用可能になっています。
+    最新の動向を押さえつつ、その時点で最適な非同期プログラミングを楽しみましょう。
+    </p>
+    </div>
+  </div>
+</div>

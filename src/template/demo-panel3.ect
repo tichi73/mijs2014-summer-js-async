@@ -1,10 +1,26 @@
 <% extend 'demo-panel-base.ect' %>
+<div class="demo-description">
+<h3>jQuery.Deferred オブジェクトによる非同期処理</h3>
+<p>
+ここで非同期処理に jQuery.Deferred オブジェクトを使う方法を紹介します。
+</p>
+<p>
+先ほどと同じ delay という非同期処理を、内部で jQuery.Deferred オブジェクトを生成し、
+その Promise オブジェクト（Deferred に内包されている）を返す、
+という実装に書き換えます。
+そして、非同期処理が完了した時点で Deferred オブジェクトの resolve() を呼び出すようにしておきます。
+<p>
+<p>
+これで delay は Deferred インターフェースを持つことになり、
+.then() というメソッドで非同期処理を連結できるようになります。
+</p>
+</div>
 <script type="text/javascript">
-!function(){
+$(function(){
 	var panel = $("#<%- @panel_id %>");
-	var timeout = 3000;
 	var btn = panel.find('.btn.btn-primary');
 	var content = panel.find('.panel-content');	
+	var timeout = 3000;
 
 	function delay() {
 		/* Deferred オブジェクトを生成する */
@@ -30,5 +46,5 @@
 		});
 
 	});
-}();
+});
 </script>

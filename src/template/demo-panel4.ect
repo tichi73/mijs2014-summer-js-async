@@ -1,10 +1,32 @@
 <% extend 'demo-panel-base.ect' %>
+<div class="demo-description">
+<h3>Deferred による非同期処理の共通化</h3>
+<p>
+Deferred インターフェースを持つ非同期処理は共通的に扱うことができるようになります。
+</p>
+<p>
+さきほどの delay に加えて、ブラウザが位置情報を取得する getCurrentPosition、
+位置情報から住所を調べる getAddress という非同期処理を用意しました。
+これらは Deferred インターフェースを持っているので、すべて .then() で連結することができます。
+</p>
+<p>
+また .when() を使って非同期処理を並列化することも可能です。
+この場合は、すべての非同期処理が完了したときに、次の処理に継続することになります。
+</p>
+<p>
+getAddress を見ると分かるように jQuery.Ajax も Deferred インターフェースを備えていることが分かります。
+非同期処理を実装するときに Deferred を使うことで、再利用性が高いパーツを作ることになるでしょう。
+</p>
+<p>
+参考：<a href="http://www.ogaoga.org/?p=793">jQuery.Deferred を使って非同期処理をエレガントに書く #html5j</a>
+</p>
+</div>
 <script type="text/javascript">
-!function(){
+$(function(){
 	var panel = $("#<%- @panel_id %>");
-	var timeout = 3000;
 	var btn = panel.find('.btn.btn-primary');
 	var content = panel.find('.panel-content');	
+	var timeout = 3000;
 
 	function delay() {
 		/* Deferred オブジェクトを生成する */
@@ -23,15 +45,15 @@
 	// http://www.ogaoga.org/?p=793
 	//----------------------------------------------------------------------
     // 位置情報を取得する。
-    var getCurrentPosition = function() {
+    function getCurrentPosition() {
         // Deferred オブジェクトを取得
         var deferred = new $.Deferred();
         navigator.geolocation.getCurrentPosition(
             function(position) {
                 // 位置情報の取得に成功したので、緯度経度を deferred.resolve() に渡す。
 				content.text(content.text() +
-					"lat=" + position.coords.latitude + 
-					",lon=" + position.coords.longitude + "です...");
+					"緯度は " + position.coords.latitude + 
+					" 経度は " + position.coords.longitude + " です...");
                 return deferred.resolve(position);
             },
             function(error) {
@@ -41,20 +63,49 @@
         );
         // Pormise オブジェクトを返す
         return deferred.promise();
-    };
+    }
     
     // 位置情報から住所を取得する。
-    var getAddress = function(position) {
-    	console.log("getAddress:", position);
-        var url = 'http://www.finds.jp/ws/geocode.php';
-        return $.ajax(url, {
+    function getAddress(position) {
+        var deferred = new $.Deferred();
+        var url = 'http://www.finds.jp/ws/rgeocode.php';
+        $.ajax(url, {
             data: {
                 lat: position.coords.latitude,
                 lon: position.coords.longitude
             },
-			dataType: 'jsonp',
-			jsonp: 'jsonp'
+            dataType: 'jsonp',
+            jsonp: 'jsonp'
+        }).done(function(data){
+			if (data.status == 200) {
+				var result = data.result;
+				var address = result.prefecture.pname +
+					result.municipality.mname +
+					result.local[0].section;
+				content.text(content.text() + 
+					"住所は「" + address + "」です...");
+			} else {
+				content.text(content.text() + "住所が取得できませんでした！");
+			}
+            return deferred.resolve();
         });
+        return deferred.promise();
+    }
+
+	// 位置情報から天気を取得する
+    function getWeather(position) {
+        var deferred = new $.Deferred();
+        var url = 'http://api.openweathermap.org/data/2.5/weather';
+        return $.ajax(url, {
+            data: {
+                lat: position.coords.latitude,
+                lon: position.coords.longitude
+            }
+        }).done(function(data){
+			content.text(content.text() + "天気は「" + data.weather[0].description + "」です...");
+            return deferred.resolve();
+        });
+        return deferred.promise();
     };
 
 	btn.click(function(){
@@ -63,18 +114,13 @@
 
 		delay()
 		.then(getCurrentPosition)	// ブラウザから現在位置を取得
-		.then(getAddress)			// 現在位置から住所を取得
-		.then(function(data) {		// 住所取得成功
-			if (data.status == 200) {
-				content.text(content.text() + 
-					"現在位置は「" + data.result.local[0].section + "」です");
-			} else {
-				content.text(content.text() + "現在位置が取得できませんでした！");
-			}
+		.then(function(position){
+			return $.when(getAddress(position), getWeather(position));
 		})
 		.always(function(){
+			content.text(content.text() + "完了!");
 			btn.prop('disabled', false);
 		});
 	});
-}();
+});
 </script>

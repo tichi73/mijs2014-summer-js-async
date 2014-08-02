@@ -1,10 +1,22 @@
 <% extend 'demo-panel-base.ect' %>
+<div class="demo-description">
+<h3>コールバック地獄の入口</h3>
+<p>
+疑似的に時間がかかる処理を delay という名前の関数で作成し、
+これは完了時に指定したコールバック関数を呼び出すものとします。
+この delay を連続的に処理させたい場合、コールバック関数の中で再度 delay を呼び出す必要があり、
+以下のようにコードのインデントが深くなってしまい、可読性の低いものになってしまいます。
+</p>
+<p>
+※ ここでは紹介しきれませんが非同期処理の並列化やエラーの伝搬など行うにはさらに地獄になると言われています。
+</p>
+</div>
 <script type="text/javascript">
-!function(){
+$(function(){
 	var panel = $("#<%- @panel_id %>");
-	var timeout = 3000;
 	var btn = panel.find('.btn.btn-primary');
 	var content = panel.find('.panel-content');
+	var timeout = 3000;
 
 	function delay(callback) {
 		setTimeout(function(){
@@ -25,5 +37,5 @@
 			})
 		});
 	});
-}();
+});
 </script>
